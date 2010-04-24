@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Debug</title>
+<link rel="shortcut icon" href="/favicon.ico">
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery-json.js"></script>
+<script type="text/javascript" src="speak.js"></script>
+
+<script type="text/javascript">
+var room;
+
+var lastSetScroll = -1;
+
+// Add a message to the scrolling message box
+function msg(style, from, text) {
+	if (!text) { text = from; from = null; }
+	var messages = $('#messages');
+	var message = $('<div class="message '+style+'">');
+	if (from) {
+		message.append($('<span class="from">').text(from+':'),'&nbsp');
+	}
+	message.append(text);
+	messages.append(message);
+
+	if (lastSetScroll < 0 || messages.attr('scrollTop') > lastSetScroll-5) { 
+		messages.attr('scrollTop',messages.attr('scrollHeight'));
+		lastSetScroll = messages.attr('scrollTop');
+	}
+}
+
+window.onload = function() {
+	$.speak.debug = console.log;
+	$.speak.timeout = 20; // 20 second timeout
+	room = $.speak.connect('lusion', {'name':'Josh'});
+	room.hello = function(uid, user, isnew) {
+		if (isnew) {
+			$('#users').append($('<div class="user">').attr('id','user_'+uid));
+		}
+		$('#user_'+uid).text(user['name']);
+	};
+	room.goodbye = function(uid,user) {
+		$('#user_'+uid).remove();
+	};
+	room.message = function(uid, user, message) {
+		msg('message',user?user['name']:'Unknown',message['message']);
+	};
+
+	$('#form').submit(function() {
+		if (v = $('#input').val()) { room.write({'message':v}); $('#input').val(''); }
+		return false;
+	});
+};
+
+</script>
+<link href="/speak.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<center>
+	<h1>Speak</h1>
+</center>
+<form action="?" method="post" id="form">
+<table id="chat">
+<tr>
+ <td><div id="messages"></div></td>
+ <td><strong>In Room:</strong><div id="users"></div></td>
+</tr>
+<tr>
+ <td><input id="input" type="text"></td>
+ <td><input type="submit" value="Send" id="send"></td>
+</tr>
+</form>
+</div>
+</body>
+</html>
+

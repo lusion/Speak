@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Debug</title>
+<link rel="shortcut icon" href="/favicon.ico">
+<script type="text/javascript" src="../jquery/jquery.js"></script>
+<script type="text/javascript" src="../jquery/speak.js"></script>
+<script type="text/javascript">
+
+var channel = "lusion";
+var users = {};
+var v; var w;
+
+var lastSetScroll = -1;
+function msg(c,txt) {
+	if (c != 'message') c = 'message '+c;
+	var m = $('#messages');
+	m.append($('<div class="'+c+'">').text(txt));
+
+	if (lastSetScroll < 0 || m.attr('scrollTop') > lastSetScroll-5) { 
+		m.attr('scrollTop',m.attr('scrollHeight'));
+		lastSetScroll = m.attr('scrollTop');
+	}
+}
+function join(c) {
+	if (!users[c]) users[c] = {};
+	channel = c;
+	msg('system','Joining channel: '+c);
+	$.speak.abort();
+	load();
+}
+
+function load() {
+	$.speak.load(channel, function(d) {
+			$.each(d.messages,function () {
+				if (this.type == 'introduction') {
+					users[channel][this.from] = this.message;
+					msg('system','Introduction from (#'+this.from+'): '+users[channel][this.from]);
+				}else if (this.type == 'goodbye') {
+					if (this.from && users[channel][this.from]) {
+						msg('system','Goodbye from (#'+this.from+'): '+users[channel][this.from]);
+					}
+				}else{
+					if (this.from && users[channel][this.from]) {
+						msg('system','Message from (#'+this.from+'): '+users[channel][this.from]);
+					}
+					msg('message',this.message);
+				}
+			});
+			load();
+		});
+}
+
+window.onload = function() {
+	$.speak.debug = console.log;
+	$('#form').submit(function() {
+		if (v = $('#input').val()) {
+			$('#input').val('');
+			if (v[0] == '/') {
+				c = v.split(' ',1)[0];
+				v = v.substring(c.length+1);
+				if (c == '/channel' || c == '/join') {
+					join(v);
+				}else if (c == '/introduce') {
+					$.speak.abort();
+					$.speak.introduce(channel,v,load);	
+				}else if (c == '/clear') {
+					$('#messages').empty();
+				}
+			}else{
+				$.speak.send(channel,v);
+			}
+		}
+		return false;
+	});
+
+	join('lusion');
+};
+
+</script>
+<link href="/speak.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<center>
+	<h1>Speak</h1>
+</center>
+<form action="?" method="post" id="form">
+<table id="chat">
+<tr>
+ <td><div id="messages"></div></td>
+ <td><strong>In Room:</strong><div id="room"></div></td>
+</tr>
+<tr>
+ <td><input id="input" type="text"></td>
+ <td><input type="submit" value="Send" id="send"></td>
+</tr>
+</form>
+</div>
+</body>
+</html>
+

@@ -1,0 +1,31 @@
+#chat {
+	margin-left: auto;
+	margin-right: auto;
+	background-color: #eee;
+}
+#chat td { vertical-align: top; }
+#messages {
+	height: 400px;
+	width: 600px;
+	overflow: auto;
+	margin-bottom: 5px;
+}
+.message span.from {
+	font-weight: bold;
+}
+.message {
+	margin: 5px;
+	padding: 5px;
+	background-color: #fff;
+	border: 1px solid #ddd;
+}
+.message.system { font-size: 10px; font-family: monospace; background-color: #ddd; border: #000; color: #666; }
+
+#room {
+	width: 200px;
+}
+#input {
+	width: 600px;
+}
+#send {
+}

@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Debug</title>
+<link rel="shortcut icon" href="/favicon.ico">
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery-json.js"></script>
+<script type="text/javascript" src="speak.js"></script>
+
+<script type="text/javascript">
+var me = null;
+var channel = "lusion";
+var users = {};
+
+var lastSetScroll = -1;
+
+// Add a message to the scrolling message box
+function msg(style, from, text) {
+	if (!text) { text = from; from = null; }
+	var messages = $('#messages');
+	var message = $('<div class="message '+style+'">');
+	if (from) {
+		message.append($('<span class="from">').text(from+':'),'&nbsp');
+	}
+	message.append(text);
+	messages.append(message);
+
+	if (lastSetScroll < 0 || messages.attr('scrollTop') > lastSetScroll-5) { 
+		messages.attr('scrollTop',messages.attr('scrollHeight'));
+		lastSetScroll = messages.attr('scrollTop');
+	}
+}
+
+// Join a different channel
+function join(_channel) {
+	channel = _channel;
+
+	// Keep track of users in this channel
+	if (!users[channel]) users[channel] = {};
+	msg('system',null,'Joining channel: '+channel);
+
+	// Reset speak, and introduce (or just load)
+	$.speak.reset();
+	if (me) $.speak.json.introduce(channel,me,load);
+	else load();
+}
+
+// Load data callback
+function load() {
+	$.speak.json.load(channel, function(j) {
+			$.each(j.messages,function () {
+				if (this.type == 'introduction') {
+					if (users[channel][this.from]) {
+						if (users[channel][this.from]['name'] != this.message['name']) {
+							msg('system',users[channel][this.from]['name']+' has changed their name to '+this.message['name']);
+						}
+						users[channel][this.from] = this.message;
+					}else{
+						users[channel][this.from] = this.message;
+						msg('system',users[channel][this.from]['name']+' has joined the room');
+						$('#users').append($('<div class="user">').attr('id','user_'+this.from).text(users[channel][this.from]['name']));
+					}
+				}else if (this.type == 'goodbye') {
+					if (this.from && users[channel][this.from]) {
+						msg('system',users[channel][this.from]['name']+' has left the room');
+						users[channel][this.from] = null;
+						$('#user_'+this.from).remove();
+					}
+				}else{
+					var from = (this.from && users[channel][this.from] ? users[channel][this.from]['name'] : 'Unknown');
+					msg('message',from,this.message['message']);
+				}
+			});
+			load();
+		});
+}
+
+window.onload = function() {
+	$.speak.debug = console.log;
+	$.speak.timeout = 20; // 20 second timeout
+	$('#form').submit(function() {
+		if (v = $('#input').val()) {
+			$('#input').val('');
+			if (v[0] == '/') {
+				c = v.split(' ',1)[0];
+				v = v.substring(c.length+1);
+				if (c == '/channel' || c == '/join') {
+					join(v);
+				}else if (c == '/introduce' || c == '/name') {
+					$.speak.abort();
+					if (!me) me = {};
+					me['name'] = v;
+					$.speak.json.introduce(channel,me,load);	
+				}else if (c == '/clear') {
+					$('#messages').empty();
+				}
+			}else{
+				$.speak.json.send(channel,{'message':v});
+			}
+		}
+		return false;
+	});
+
+	join('lusion');
+};
+
+</script>
+<link href="/speak.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<center>
+	<h1>Speak</h1>
+</center>
+<form action="?" method="post" id="form">
+<table id="chat">
+<tr>
+ <td><div id="messages"></div></td>
+ <td><strong>In Room:</strong><div id="users"></div></td>
+</tr>
+<tr>
+ <td><input id="input" type="text"></td>
+ <td><input type="submit" value="Send" id="send"></td>
+</tr>
+</form>
+</div>
+</body>
+</html>
+

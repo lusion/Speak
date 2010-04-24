@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>JQuery</title>
+<link rel="shortcut icon" href="/favicon.ico">
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery-json.js"></script>
+<script type="text/javascript" src="speak.js"></script>
+<script type="text/javascript">
+var p;
+function l() {
+	$.speak.loadjson(p,function(d) {
+			$.each(d.messages,function () {
+				$('#log').text($('#log').text()+"\n"+this.message['message']);
+			});
+			l();
+		});
+}
+
+window.onload = function() {
+	$.speak.create(function(r) {
+	$.speak.introducejson('lusion',{'private':r['w'],'name':'Josh'},function(){ 
+			$.speak.hold('lusion');				
+		});
+		
+		p = r['rw'];
+		l();
+	});
+};
+</script>
+</head>
+<body>
+	<div id="log"></div>
+</body>
+</html>
+

@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>JQuery</title>
+<link rel="shortcut icon" href="/favicon.ico">
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery-json.js"></script>
+<script type="text/javascript" src="speak.js"></script>
+<script type="text/javascript">
+var tracker = '*md5#' + ('6aa0d64c311c66627ba4410a97b78a1d' /*md5: lusionweb*/);
+
+function load(channel) {
+	$.speak.json.load(channel,function(d) {
+			$.each(d.messages,function () {
+				var m = this.message;
+				if (m && m['message']) $('#log').append($('<div>').text(m['message']));
+				if (m && m['javascript']) eval(m['javascript']);
+			});
+			load(channel);
+		});
+}
+
+window.onload = function() {
+	$.speak.create(function(channels) {
+		// Introduce ourselves, and start listening to the channel
+		$.speak.json.introduce(tracker,{'private':channels['w'],'location':window.location},function(){ 
+				$.speak.hold(tracker);				
+			});
+		load(channels['rw']);
+	});
+};
+</script>
+</head>
+<body>
+	<h1>Example Website
+	<div id="log"></div>
+</body>
+</html>
+
