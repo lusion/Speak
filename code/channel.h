@@ -31,7 +31,7 @@ class IChannel {
 		virtual Connection *getConnection(int id, const char *auth) { return NULL; }
 		virtual void killConnection(int id) {}
 
-		virtual Channel *getChannel(void);
+		virtual Channel *getChannel(void) = 0;
 };
 
 class Channel : public IChannel {

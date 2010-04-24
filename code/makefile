@@ -1,4 +1,4 @@
 main: *.cpp
-	g++ -g -Wno-deprecated -o speak *.cpp
+	g++ -g -Wno-deprecated -o speak *.cpp *.c
 
 
