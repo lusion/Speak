@@ -50,6 +50,21 @@ void HTTP::timeout(void) {
 	reply_result("timeout");
 }
 
+int HTTP::reply_http(const char *d, int l) {
+	if (sock < 0) return 0;
+
+  int rc;
+
+  rc = send(sock, d, l, 0);
+  if (rc < 0)
+  {
+      printf("HTTP::reply failed");
+	}
+	speak_close(sock); // reply and close the socket
+	sock = -1;
+	return 0;
+}
+
 int HTTP::reply(const char *d, int l) {
 	if (sock < 0) return 0;
 
@@ -368,7 +383,7 @@ int HTTP::process(void) {
 		strcpy(buffer,"HTTP/1.1 200 OK\r\nContent-Type: image/gif\r\nContent-Length: 49\r\n\r\n");
 		L = strlen(buffer);
 		memcpy(buffer+L, gif_data,49);
-		return reply(buffer,L+49);
+		return reply_http(buffer,L+49);
 	}else if (strcmp(url,"/test") == 0) {
 		return reply_result("ok");
 	}else if (strcmp(url,"/create") == 0) {

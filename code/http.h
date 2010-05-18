@@ -18,6 +18,7 @@ class HTTP : public Timeout {
 		void timeout(void);
 	private:
 		int process(void);
+		int reply_http(const char *d, int l);
 		int reply(const char *d, int l);
 		int reply(const char *s);
 		int reply_result(const char *format, ...);
